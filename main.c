@@ -1,18 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <math.h>
 #include <time.h>
 
 // Constants
-const int testCode[] = {1, 3, 3, 5};
-const int SIZEOFCODE = 4;
-const char SPECIAL_NULL = '#';
+const int testCode[] = {1, 3, 3, 7};
+const int CODE_SIZE = 4;
+const int NULL_TERM_SPACE = 1;
 
 // Prototypes
 int *int_to_list(int original);
 bool good_guess(char *guess);
-int digit_counter(int integer);
+unsigned int nano_seed(void)
+int basic_RNG(unsigned int seed, int rangeStart, int rangeEnd)
+// int digit_counter(int integer);
 int inputHandler(char *variable);
 void inputPrompt(char *variable, char *prompt);
 
@@ -20,31 +21,28 @@ int main(void)
 {    
     // Intro
     printf("\n*****\nWelcome to Mastermindle!\n*****\n\n");
+    // Index 4 to check if more than 4 digits entered, Index 5 for `scanf()`s automatic newline.
+    char userInput[6] = {'\0'};
 
-    char userInput[5] = {'\0'};
-    inputPrompt(userInput, "Please enter a guess for the secret code. It can only be 4 digits long.");
+    do
+    {
+        inputPrompt(userInput, "Please enter a guess for the secret code. It can only be 4 digits long.");
+    } while (!good_guess(userInput));
 
-    int userGuess = atoi(userInput);
-
-    printf("%d\n", userGuess);
+    short userGuess = atoi(userInput);
 
     int *f_userGuess = int_to_list(userGuess);
 
-    // debug
-    for (int i = 0; i < SIZEOFCODE; i++)
-    {
-        printf("%d\n", f_userGuess[i]);
-    }
-    // end
+
 
     return 0;
 }
 
 int *int_to_list(int original)
 {
-    int *ptr = malloc(sizeof(int) * SIZEOFCODE);
+    int *ptr = malloc(sizeof(int) * CODE_SIZE);
 
-    for (int i = 0, divisor = 1000; i < SIZEOFCODE; i++, divisor/=10)
+    for (int i = 0, divisor = 1000; i < CODE_SIZE; i++, divisor/=10)
     {
         ptr[i] = (original / divisor) % 10;
     }
@@ -54,33 +52,55 @@ int *int_to_list(int original)
 
 bool good_guess(char *guess)
 {
-    if (guess[4] != SPECIAL_NULL)
+    if (guess[CODE_SIZE] != '\0')
     {
         return false;
     }
     
-    for (int i = 0; i != SPECIAL_NULL; i++)
+    for (int i = 0; i < CODE_SIZE; i++)
     {
-        // how to differentiate the end vs in the middle
+        if (guess[i] == '\0' || guess[i] < 48 || guess[i] > 57)
+        {
+            return false;
+        }
     }
     return true;
 }
 
-int digit_counter(int integer)
+unsigned int nano_seed(void)
 {
-    int counter = 0;
-    for (; integer != 0; counter++)
+    struct timespec seed;
+    if (clock_gettime(CLOCK_MONOTONIC, &seed) == -1)
     {
-        integer /= 10;
+        perror("clock_gettime error");
     }
-    return counter;
+    unsigned int seedOut = (unsigned int)(seed.tv_sec ^ seed.tv_nsec);
+    return seedOut;
 }
+
+int basic_RNG(unsigned int seed, int rangeStart, int rangeEnd)
+{
+    int output = 0;
+    srand(seed);
+    output = (rand() % (rangeEnd - rangeStart)) + rangeStart;
+    return output;
+}
+
+// int digit_counter(int integer)
+// {
+//     int counter = 0;
+//     for (; integer != 0; counter++)
+//     {
+//         integer /= 10;
+//     }
+//     return counter;
+// }
 
 int inputHandler(char *variable)
 {
     int status = 0;
     int ch;
-    status = scanf("%s", variable);
+    status = scanf("%5s", variable);
     while ((ch = getchar()) != '\n' && ch != EOF);
     return status;
 }
