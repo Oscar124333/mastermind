@@ -11,6 +11,14 @@ const int NULL_TERM_SPACE = 1;
 const char *EXIT = "exit";
 const int WIN_STATE = CODE_SIZE;
 
+// Globals
+typedef struct
+{
+    char digit;
+    char hint;
+    bool taken;
+} IntegerAttribute;
+
 // Prototypes
 int *int_to_list(int integer);
 bool good_guess(char *guess);
@@ -28,9 +36,9 @@ int main(void)
     printf("\n*****\nWelcome to Mastermindle!\n*****\n\n");
     // Index #4 to check if more than 4 digits entered, Index #5 for `scanf()`s automatic newline.
     char userInput[CODE_SIZE + 1 + NULL_TERM_SPACE];
-    memset(userInput, '\0', sizeof(userInput[0]));
+    memset(userInput, '\0', sizeof(userInput[0]) * (CODE_SIZE + 1 + NULL_TERM_SPACE));
     int secretCode[CODE_SIZE + NULL_TERM_SPACE];
-    memset(secretCode, '\0', sizeof(secretCode[0]));
+    memset(secretCode, '\0', sizeof(secretCode[0]) * (CODE_SIZE + NULL_TERM_SPACE));
 
     // RNG
     code_generator(secretCode, CODE_SIZE);
@@ -43,32 +51,57 @@ int main(void)
     // endDebug
 
     int *userGuessListed;
-    bool indexStatus[CODE_SIZE];
-    memset(indexStatus, false, sizeof(indexStatus[0]));
-
+    IntegerAttribute indexStatus[CODE_SIZE];
+    
     do
     {
         guess_prompter(userInput);
-        // prevent program from looping through the entire process when "exit" is selected
+        if (!strcmp(EXIT, userInput))
+        {
+            return 0;
+        }
         
         short userGuess = atoi(userInput);
         userGuessListed = int_to_list(userGuess);
-
+        memset(indexStatus, '\0', sizeof(indexStatus));
+        
         /* start logic */
         // exact matches loop
         for (int i = 0; i < CODE_SIZE; i++)
         {
-            if (secretCode[i] == userGuessListed[i])
+            char currentDigit = userGuessListed[i];
+            indexStatus[i].digit = currentDigit;
+
+            if (currentDigit == secretCode[i])
             {
-                indexStatus[i] = true;
+                indexStatus[i].taken = true;
+                indexStatus[i].hint = 'y';
                 // debug
                 printf("Position #%d is a match!\n", i+1);
+                    // shove this into a loop based on boolean list
                 // endDebug
             }
+            else
+            {
+                for (int j = 0; j < CODE_SIZE; j++)
+                {
+                    if (currentDigit == secretCode[j] && (!indexStatus[j].taken))
+                    {
+                        indexStatus[j].taken = true;
+                        indexStatus[j].hint = 'o';
+                    }
+                }
+            }
+        }
+
+        // debug (might become the display loop)
+        for (int i = 0; i < CODE_SIZE; i++)
+        {
+            printf("[%d]: %d %c\n\n", indexStatus[i].digit, indexStatus[i].taken, indexStatus[i].hint);
         }
         // (implement here) general matches loop
 
-    } while (strcmp(EXIT, userInput));
+    } while (true);
     
     free(userGuessListed);
     return 0;
