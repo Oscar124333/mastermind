@@ -75,31 +75,41 @@ int main(void)
             if (currentDigit == secretCode[i])
             {
                 indexStatus[i].taken = true;
-                indexStatus[i].hint = 'y';
-                // debug
-                printf("Position #%d is a match!\n", i+1);
-                    // shove this into a loop based on boolean list
-                // endDebug
+                indexStatus[i].hint = 'y'8;
             }
             else
             {
+                // general matches loop
                 for (int j = 0; j < CODE_SIZE; j++)
                 {
                     if (currentDigit == secretCode[j] && (!indexStatus[j].taken))
                     {
                         indexStatus[j].taken = true;
-                        indexStatus[j].hint = 'o';
+                        indexStatus[i].hint = 'o';
+                        break;
                     }
                 }
             }
         }
 
-        // debug (might become the display loop)
+        // no matches loop
         for (int i = 0; i < CODE_SIZE; i++)
         {
-            printf("[%d]: %d %c\n\n", indexStatus[i].digit, indexStatus[i].taken, indexStatus[i].hint);
+            if (indexStatus[i].hint == '\0')
+            {
+                indexStatus[i].hint = 'x';
+            }
         }
-        // (implement here) general matches loop
+        for (int i = 0; i < CODE_SIZE; i++)
+        {
+            printf("[%d]\t", indexStatus[i].digit);
+        }
+        printf("\n");
+        for (int i = 0; i < CODE_SIZE; i++)
+        {
+            printf(" %c\t", indexStatus[i].hint);
+        }
+        printf("\n");
 
     } while (true);
     
