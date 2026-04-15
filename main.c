@@ -9,14 +9,14 @@ const int testCode[] = {1, 3, 3, 7};
 const int CODE_SIZE = 4;
 const int NULL_TERM_SPACE = 1;
 const char *EXIT = "exit";
-const int WIN_STATE = CODE_SIZE;
 
 // Globals
 typedef struct
 {
-    char digit;
+    char digit; // char is used as a small integer data type
     char hint;
     bool taken;
+    bool exact;
 } IntegerAttribute;
 
 // Prototypes
@@ -34,7 +34,7 @@ int main(void)
 {    
     // Intro
     printf("\n*****\nWelcome to Mastermindle!\n*****\n\n");
-    // Index #4 to check if more than 4 digits entered, Index #5 for `scanf()`s automatic newline.
+    // Index #4 used to check if more than 4 digits entered, Index #5 allocated to `scanf()`s automatic newline.
     char userInput[CODE_SIZE + 1 + NULL_TERM_SPACE];
     memset(userInput, '\0', sizeof(userInput[0]) * (CODE_SIZE + 1 + NULL_TERM_SPACE));
     int secretCode[CODE_SIZE + NULL_TERM_SPACE];
@@ -51,6 +51,7 @@ int main(void)
     // endDebug
 
     int *userGuessListed;
+    int exactCounter = 0;
     IntegerAttribute indexStatus[CODE_SIZE];
     
     do
@@ -75,14 +76,15 @@ int main(void)
             if (currentDigit == secretCode[i])
             {
                 indexStatus[i].taken = true;
-                indexStatus[i].hint = 'y'8;
+                indexStatus[i].exact = true;
+                indexStatus[i].hint = 'y';
             }
             else
             {
                 // general matches loop
                 for (int j = 0; j < CODE_SIZE; j++)
                 {
-                    if (currentDigit == secretCode[j] && (!indexStatus[j].taken))
+                    if (!indexStatus[j].taken && currentDigit == secretCode[j] && userGuessListed[j] != secretCode[j])
                     {
                         indexStatus[j].taken = true;
                         indexStatus[i].hint = 'o';
@@ -100,6 +102,8 @@ int main(void)
                 indexStatus[i].hint = 'x';
             }
         }
+
+        // display hint
         for (int i = 0; i < CODE_SIZE; i++)
         {
             printf("[%d]\t", indexStatus[i].digit);
@@ -111,7 +115,15 @@ int main(void)
         }
         printf("\n");
 
-    } while (true);
+        for (int i = 0; i < CODE_SIZE; i++)
+        {
+            if (indexStatus[i].exact)
+            {
+                exactCounter++;
+            }
+        }
+
+    } while (!(exactCounter >= CODE_SIZE));
     
     free(userGuessListed);
     return 0;
