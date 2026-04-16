@@ -5,9 +5,9 @@
 #include <time.h>
 
 // Constants
-const int testCode[] = {1, 3, 3, 7};
 const int CODE_SIZE = 4;
 const int NULL_TERM_SPACE = 1;
+const int LIVES = 5;
 const char *EXIT = "exit";
 
 // Globals
@@ -26,12 +26,11 @@ void guess_prompter(char *buffer);
 unsigned int nano_seed(void);
 int basic_RNG(unsigned int seed, int rangeStart, int rangeEnd);
 void code_generator(int *list, int size);
-// int digit_counter(int integer);
 int inputHandler(char *variable);
 void inputPrompt(char *variable, char *prompt);
 
 int main(void)
-{    
+{       
     // Intro
     printf("\n*****\nWelcome to Mastermindle!\n*****\n\n");
     // Index #4 used to check if more than 4 digits entered, Index #5 allocated to `scanf()`s automatic newline.
@@ -39,23 +38,20 @@ int main(void)
     memset(userInput, '\0', sizeof(userInput[0]) * (CODE_SIZE + 1 + NULL_TERM_SPACE));
     int secretCode[CODE_SIZE + NULL_TERM_SPACE];
     memset(secretCode, '\0', sizeof(secretCode[0]) * (CODE_SIZE + NULL_TERM_SPACE));
-
+    
     // RNG
     code_generator(secretCode, CODE_SIZE);
-    // debug
-    for (int i = 0; i < CODE_SIZE; i++)
-    {
-        printf("Digit %d: %d\n", i+1, secretCode[i]);
-    }
-    printf("\n");
-    // endDebug
-
+    
+    // loop data
     int *userGuessListed;
-    int exactCounter = 0;
+    short exactCounter;
+    short guessCounter = 0;
+
     IntegerAttribute indexStatus[CODE_SIZE];
     
     do
     {
+        printf("You have %d guesses remaining.\n\n", LIVES - guessCounter);
         guess_prompter(userInput);
         if (!strcmp(EXIT, userInput))
         {
@@ -64,6 +60,11 @@ int main(void)
         
         short userGuess = atoi(userInput);
         userGuessListed = int_to_list(userGuess);
+        if (userGuessListed == NULL)
+        {
+            perror("userGuess failed");
+            return 1;
+        }
         memset(indexStatus, '\0', sizeof(indexStatus));
         
         /* start logic */
@@ -72,7 +73,7 @@ int main(void)
         {
             char currentDigit = userGuessListed[i];
             indexStatus[i].digit = currentDigit;
-
+            
             if (currentDigit == secretCode[i])
             {
                 indexStatus[i].taken = true;
@@ -93,7 +94,7 @@ int main(void)
                 }
             }
         }
-
+        
         // no matches loop
         for (int i = 0; i < CODE_SIZE; i++)
         {
@@ -102,8 +103,9 @@ int main(void)
                 indexStatus[i].hint = 'x';
             }
         }
-
+        
         // display hint
+        printf("\n");
         for (int i = 0; i < CODE_SIZE; i++)
         {
             printf("[%d]\t", indexStatus[i].digit);
@@ -113,8 +115,10 @@ int main(void)
         {
             printf(" %c\t", indexStatus[i].hint);
         }
-        printf("\n");
-
+        
+        // iteration of terms in do-while conditional
+        guessCounter++;
+        exactCounter = 0;
         for (int i = 0; i < CODE_SIZE; i++)
         {
             if (indexStatus[i].exact)
@@ -122,10 +126,33 @@ int main(void)
                 exactCounter++;
             }
         }
-
-    } while (!(exactCounter >= CODE_SIZE));
+        
+        free(userGuessListed);
+        
+    } while (exactCounter < CODE_SIZE && guessCounter < LIVES);
     
-    free(userGuessListed);
+    // win/lose conditions
+    printf("\n\n*****\n");
+    if (exactCounter >= CODE_SIZE)
+    {
+        if (guessCounter == 1)
+        {
+            printf("Wow, first try! ");
+        }
+        printf("Congratulations! ");
+    }
+    else
+    {
+        printf("Better luck next time! ");
+    }
+    
+    printf("The secret code was:");
+    for (int i = 0; i < CODE_SIZE; i++)
+    {
+        printf(" %d", secretCode[i]);
+    }
+    printf("\n*****\n\n");
+
     return 0;
 }
 
@@ -195,16 +222,6 @@ void code_generator(int *list, int size)
     }
     return;
 }
-
-// int digit_counter(int integer)
-// {
-//     int counter = 0;
-//     for (; integer != 0; counter++)
-//     {
-//         integer /= 10;
-//     }
-//     return counter;
-// }
 
 int inputHandler(char *variable)
 {
