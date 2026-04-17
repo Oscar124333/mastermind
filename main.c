@@ -32,7 +32,7 @@ void inputPrompt(char *variable, char *prompt);
 int main(void)
 {       
     // Intro
-    printf("\n*****\nWelcome to Mastermindle!\n*****\n\n");
+    printf("\n*****\nWelcome to Mastermindle!\n*****\n\nType 'exit' at any time to quit the program.\n");
     // Index #4 used to check if more than 4 digits entered, Index #5 allocated to `scanf()`s automatic newline.
     char userInput[CODE_SIZE + 1 + NULL_TERM_SPACE];
     memset(userInput, '\0', sizeof(userInput[0]) * (CODE_SIZE + 1 + NULL_TERM_SPACE));
@@ -78,7 +78,7 @@ int main(void)
             {
                 indexStatus[i].taken = true;
                 indexStatus[i].exact = true;
-                indexStatus[i].hint = 'y';
+                indexStatus[i].hint = 'Y';
             }
             else
             {
@@ -88,7 +88,7 @@ int main(void)
                     if (!indexStatus[j].taken && currentDigit == secretCode[j] && userGuessListed[j] != secretCode[j])
                     {
                         indexStatus[j].taken = true;
-                        indexStatus[i].hint = 'o';
+                        indexStatus[i].hint = 'O';
                         break;
                     }
                 }
@@ -100,7 +100,7 @@ int main(void)
         {
             if (indexStatus[i].hint == '\0')
             {
-                indexStatus[i].hint = 'x';
+                indexStatus[i].hint = 'X';
             }
         }
         
@@ -177,7 +177,7 @@ bool good_guess(char *guess)
     
     for (int i = 0; i < CODE_SIZE; i++)
     {
-        if (guess[i] == '\0' || guess[i] < 48 || guess[i] > 57)
+        if (guess[i] == '\0' || guess[i] < '0' || guess[i] > '9')
         {
             return false;
         }
